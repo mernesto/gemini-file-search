@@ -28,8 +28,8 @@ from google.genai import types
 
 load_dotenv()
 
-st.set_page_config(page_title="Gemini File Search - Simple", layout="wide")
-st.title("🔍 Gemini File Search - Simple Version")
+st.set_page_config(page_title="Gemini File Search - use GUI", layout="wide")
+st.title("🔍 Gemini File Search - use GUI")
 
 # Configuration
 api_key = os.getenv("GEMINI_API_KEY")

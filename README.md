@@ -216,6 +216,24 @@ gemini-file-search/
 - Verify the model name in `USE_MODEL` is valid (e.g., `gemini-2.5-flash` or `gemini-2.5-pro`)
 - Check your API quota and rate limits
 
+## References and Additional Resources
+
+### Central Resource: Google File Search Announcement
+
+- **[File Search in the Gemini API - Google Blog](https://blog.google/technology/developers/file-search-gemini-api/)** - Official announcement and overview of the File Search Tool feature
+
+### Google Gemini AI Documentation
+
+- **[Gemini API Documentation](https://ai.google.dev/gemini-api/docs)** - Complete guide to the Gemini API, including setup, usage, and best practices
+- **[Gemini API Reference](https://ai.google.dev/api)** - Detailed API reference documentation
+- **[Google AI Studio](https://aistudio.google.com/)** - Interactive playground for testing Gemini models and features
+
+### Streamlit Documentation
+
+- **[Streamlit Documentation](https://docs.streamlit.io/)** - Official Streamlit documentation for building web apps
+- **[Streamlit API Reference](https://docs.streamlit.io/library/api-reference)** - Complete API reference for all Streamlit components
+
+
 ## License
 
 See [LICENSE](LICENSE) file for details.
