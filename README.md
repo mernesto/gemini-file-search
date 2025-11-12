@@ -26,7 +26,7 @@ Perfect for developers who want to explore this new capability and understand ho
 - 📚 **Citation Support**: Answers include citations pointing back to source documents
 - 🎨 **Streamlit GUI**: Beautiful, intuitive web interface that runs in your browser
 - ⚡ **Real-time Status**: See upload and indexing progress with periodic status updates
-- 🔄 **Duplicate Detection**: Automatically skips files that already exist in the store
+- ⏭️ **Duplicate Detection**: Automatically skips files that already exist in the store
 - 🗑️ **Store Management**: Clear your document store with a single click
 
 ## Prerequisites
@@ -35,14 +35,14 @@ Perfect for developers who want to explore this new capability and understand ho
 - Package manager (choose one):
   - [uv](https://github.com/astral-sh/uv) - A fast Python package installer and resolver (recommended)
   - `pip` and `venv` - Standard Python package management (built into Python)
-- A Google Gemini API key ([Get one here](https://makersuite.google.com/app/apikey))
+- A Google Gemini API key ([Get one here from AI Studio](https://makersuite.google.com/app/apikey))
 
 ## Setup
 
 ### 1. Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/gr8sk8s/gemini-file-search.git
 cd gemini-file-search
 ```
 
@@ -50,7 +50,7 @@ cd gemini-file-search
 
 Choose one of the following methods:
 
-#### Option A: Using `uv` (Recommended - Faster)
+#### Option A: Using `uv` (Recommended - Much Faster!)
 
 ```bash
 uv venv --python 3.11  #... or whatever version of python you prefer
@@ -94,7 +94,7 @@ GEMINI_API_KEY=your_api_key_here
 ```
 
 Optional configuration:
-- `USE_MODEL`: Gemini model to use (default: `gemini-2.5-flash`)
+- `USE_MODEL`: Gemini model to use (default: `gemini-2.5-flash`; the other supported model is `gemini-2.5-pro`)
 - `FILE_SEARCH_STORE`: Display name for the file search store (default: `demo_filesearch_store`)
 
 ### 4. Run the Application
@@ -121,7 +121,7 @@ curl --create-dirs --output-dir ./data -sSO \
   https://www.developmentaid.org/api/frontend/cms/file/2024/10/Renewables2024.pdf
 ```
 
-These sample PDFs are renewable energy reports that work great for testing the File Search Tool. Once downloaded, you can upload them through the Streamlit interface and ask questions like:
+These sample PDFs are renewable energy reports that work well for testing the File Search Tool. Once downloaded, you can upload them through the Streamlit interface and ask questions like:
 - "What are the key renewable energy trends for 2024?"
 - "What does the report say about solar energy growth?"
 - "Summarize the main findings from both documents"
@@ -240,13 +240,13 @@ See [LICENSE](LICENSE) file for details.
 
 ## Contributing
 
-Contributions are welcome! We appreciate your help in making this project better.
+Contributions are welcome! I appreciate your help in making this project better.
 
 ### How to Contribute
 
-- 🐛 **Found a bug?** [Open an issue](https://github.com/your-username/gemini-file-search/issues) to report it
-- 💡 **Have a feature idea?** [Open an issue](https://github.com/your-username/gemini-file-search/issues) to suggest it
-- 🔧 **Want to contribute code?** Submit a [Pull Request](https://github.com/your-username/gemini-file-search/pulls)
+- 🐛 **Found a bug?** [Open an issue](https://github.com/<your-username>/gemini-file-search/issues) to report it
+- 💡 **Have a feature idea?** [Open an issue](https://github.com/<your-username>/gemini-file-search/issues) to suggest it
+- 🔧 **Want to contribute code?** Submit a [Pull Request](https://github.com/<your-username>/gemini-file-search/pulls)
 
 When reporting bugs or issues, please include:
 - Clear description of the problem

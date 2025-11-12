@@ -151,7 +151,7 @@ def upload_files(files, skip_duplicates: bool = True):
         upload_elapsed = time.time() - upload_start
 
         # IMPORTANT: Streamlit doesn't show UI updates in real-time during blocking operations.
-        # All updates will be visible when the operation completes. We'll show the full status history now.
+        # All updates will be visible when the operation completes.
 
         # Display all accumulated status messages when operation completes
         if status_messages:
