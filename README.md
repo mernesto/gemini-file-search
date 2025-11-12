@@ -53,8 +53,8 @@ Choose one of the following methods:
 #### Option A: Using `uv` (Recommended - Much Faster!)
 
 ```bash
-uv venv --python 3.11  #... or whatever version of python you prefer
-source .venv/bin/activate #... to activate the virtual env
+uv venv --python 3.11  # ... or the version of your choice. Note that the python version you select needs to already be installed on your system.
+source .venv/bin/activate # ... to activate the virtual env
 uv pip install -r requirements.txt # ... install required libs
 ```
 
@@ -132,10 +132,10 @@ These sample PDFs are renewable energy reports that work well for testing the Fi
 
 ### Uploading Documents
 
-1. In the sidebar, click "Browse files" under "Upload documents"
-2. Select one or more PDF or TXT files
-3. Click "Upload & index" to upload and index your documents
-4. Wait for the indexing to complete (you'll see status updates every 10 seconds)
+1. In the sidebar, click "**Browse files**" under "Upload documents"
+2. Select one or more PDF or TXT files from the system (e.g. under the data/ folder if you downloaded your files there)
+3. Click "**Upload & index**" to upload and index your documents
+4. Wait for the indexing to complete.
 
 **Note:** Large documents may take several minutes to index. The application will show periodic status updates during this process.
 
@@ -213,7 +213,7 @@ gemini-file-search/
 - Large files may take longer to process; wait for the indexing to complete
 
 ### Model Errors
-- Verify the model name in `USE_MODEL` is valid (e.g., `gemini-2.5-flash` or `gemini-2.5-pro`)
+- Verify the model name in `USE_MODEL` is valid (e.g., the current supported models: `gemini-2.5-flash` or `gemini-2.5-pro`). There could be mnore in the future.
 - Check your API quota and rate limits
 
 ## References and Additional Resources
@@ -256,3 +256,5 @@ When reporting bugs or issues, please include:
 - Error messages or screenshots if applicable
 
 Thank you for contributing! 🙏
+
+- Conrad
