@@ -1,8 +1,8 @@
 # Gemini File Search - Tutorial & Demo
 
-A beginner-friendly tutorial and demo application for Google's **newly announced Gemini File Search Tool**. This project provides a complete, working example of how to build an intelligent document search and chat application using Gemini's File Search API. Upload your PDF and text documents, and ask questions about them using natural language. The application demonstrates how the File Search Tool automatically indexes your documents and provides accurate, citation-backed answers.
+A beginner-friendly tutorial and demo application in Python for Google's **newly announced Gemini File Search Tool**. This project provides a complete, working example of how to build an intelligent document search and chat application using Gemini's File Search API. Upload your PDF and text documents, and ask questions about them using natural language. The application demonstrates how the File Search Tool automatically indexes your documents and provides accurate, citation-backed answers.
 
-> **🚀 New Feature Alert!** Google's File Search Tool was just announced recently. This repository serves as a practical tutorial to help developers get started with this powerful new capability.
+> **🚀 New Feature Alert!** Google's [File Search in the Gemini API - Google Blog](https://blog.google/technology/developers/file-search-gemini-api/) was just announced recently. This repository serves as a practical tutorial to help developers get started with this powerful new capability.
 
 ## What is This?
 
@@ -17,7 +17,7 @@ This repository is a **tutorial and starter project** for learning Google's Gemi
 - Examples of handling citations and source references
 - A user-friendly web interface for managing document collections
 
-Perfect for developers who want to explore this new capability and understand how to integrate it into their own applications!
+Geared for developers who want to explore this new capability and understand how to integrate it into their own applications:
 
 ## Features
 
@@ -52,19 +52,26 @@ Choose one of the following methods:
 
 #### Option A: Using `uv` (Recommended - Much Faster!)
 
+*uv should work on all modern OSes*
+
 ```bash
-uv venv --python 3.11  # ... or the version of your choice. Note that the python version you select needs to already be installed on your system.
+uv venv --python 3.11  # ... or the runtime version of your choice. Python 3.14 is the latest as of this writing.
+# Note that the runtime version you select needs to already exist on your system.
+
 source .venv/bin/activate # ... to activate the virtual env
-uv pip install -r requirements.txt # ... install required libs
+
+uv pip install -r requirements.txt # ... install required libraries
 ```
 
 #### Option B: Using `pip` and `venv` (Traditional Method)
 
 **macOS/Linux:**
 ```bash
-python3.11 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+python3 -m venv .venv # or whatever Python runtime version you have installed on your system, e.g. python3.11 or python3.12, etc.
+
+source .venv/bin/activate # ... to activate the virtual env
+
+pip install -r requirements.txt # ... install required libraries
 ```
 
 **Windows:**
@@ -107,7 +114,7 @@ The application will open in your default web browser at `http://localhost:8501`
 
 ### 5. (Optional) Download Sample PDF Files for Testing
 
-To help you get started and see the File Search Tool in action, we've provided some sample PDF files you can download. These are optional - you can use your own PDF files for your analysis, but these samples are perfect for beginners who are new to the File Search Tool!
+To help you get started and see the File Search Tool in action, I've provided some sample PDF files you can download. These are optional - you can use your own PDF files for your analysis, but these samples are perfect for beginners who are new to the File Search Tool!
 
 **Download sample PDF files:**
 
@@ -244,9 +251,9 @@ Contributions are welcome! I appreciate your help in making this project better.
 
 ### How to Contribute
 
-- 🐛 **Found a bug?** [Open an issue](https://github.com/<your-username>/gemini-file-search/issues) to report it
-- 💡 **Have a feature idea?** [Open an issue](https://github.com/<your-username>/gemini-file-search/issues) to suggest it
-- 🔧 **Want to contribute code?** Submit a [Pull Request](https://github.com/<your-username>/gemini-file-search/pulls)
+- 🐛 **Found a bug?** [Open an issue](https://github.com/gr8sk8s/gemini-file-search/issues) to report it
+- 💡 **Have a feature idea?** [Open an issue](https://github.com/gr8sk8s/gemini-file-search/issues) to suggest it
+- 🔧 **Want to contribute code?** Submit a [Pull Request](https://github.com/gr8sk8s/gemini-file-search/pulls)
 
 When reporting bugs or issues, please include:
 - Clear description of the problem
