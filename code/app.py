@@ -7,6 +7,7 @@ This includes core functionality:
 
 """
 
+import concurrent.futures
 import os
 import time
 import traceback
@@ -18,7 +19,6 @@ from file_search_service import (
     DocumentInfo,
     UploadResult,
     clear_store,
-    document_exists,
     get_or_create_store,
     list_store_documents,
     upload_single_file,
@@ -57,6 +57,7 @@ st.sidebar.success(f"Using store: `{store_name}`")
 
 # Check for existing documents in the store
 existing_docs: list[DocumentInfo] = list_store_documents(client, store_name)
+st.session_state.existing_doc_names = {doc.display_name for doc in existing_docs}
 
 # Display existing documents info and set files_ready state
 if existing_docs:
@@ -86,12 +87,11 @@ uploaded_files = st.sidebar.file_uploader(
 
 
 def upload_files(files, skip_duplicates: bool = True):
-    """Upload files (PDF or TXT) with periodic status updates and show final status.
+    """Upload files (PDF or TXT) in parallel with status updates.
 
     Args:
         files: List of uploaded file objects.
         skip_duplicates: If True, skip files that already exist in the store.
-                         If False, upload anyway (creating duplicates).
     """
     if not files:
         st.sidebar.warning("No files selected.")
@@ -102,85 +102,51 @@ def upload_files(files, skip_duplicates: bool = True):
     failures = 0
     skipped = 0
 
-    for uploaded_file in files:
-        # Create a status container for this file
-        file_container = st.sidebar.container()
-        size_mb = uploaded_file.size / (1024 * 1024) if uploaded_file.size else 0
-        file_container.markdown(f"**{uploaded_file.name}** · {size_mb:.2f} MB")
-
-        # Check for duplicate before uploading
-        existing_doc = document_exists(client, store_name, uploaded_file.name)
-
-        if existing_doc and skip_duplicates:
-            # Document already exists - skip it
-            file_container.warning(
-                f"⏭️ **{uploaded_file.name}** - Already exists in store (skipped to avoid duplicate)"
-            )
-            skipped += 1
-            continue
-
-        # Create a status area that will show updates
-        # Note: Streamlit updates won't appear in real-time during blocking operations,
-        # but we'll accumulate messages and display them when the operation completes
-        status_messages = []
-        status_display = file_container.empty()
-
-        # Create a status callback that tracks elapsed time
-        def create_status_callback(messages_list, display_area):
-            """Create a callback that tracks status updates."""
-
-            def status_update(elapsed_seconds: float) -> None:
-                # Add the status message to our list
-                message = f"⏳ Still processing... ({elapsed_seconds:.0f}s elapsed)"
-                messages_list.append(message)
-                # Try to update the display (may not show until operation completes)
-                # We'll display all messages at the end
-
-            return status_update
-
-        status_callback = create_status_callback(status_messages, status_display)
-
-        # Show initial status immediately
-        status_display.info("⏳ Starting upload and indexing...")
-
-        # Upload the file with status callback
-        upload_start = time.time()
-        result: UploadResult = upload_single_file(
-            client, store_name, uploaded_file, status_callback=status_callback
-        )
-        upload_elapsed = time.time() - upload_start
-
-        # IMPORTANT: Streamlit doesn't show UI updates in real-time during blocking operations.
-        # All updates will be visible when the operation completes.
-
-        # Display all accumulated status messages when operation completes
-        if status_messages:
-            # Show the full status history with all periodic updates
-            all_messages = ["⏳ Starting upload and indexing..."] + status_messages
-            # Add a final status if we have updates
-            if status_messages:
-                all_messages.append(f"✅ Completed in {upload_elapsed:.1f}s")
-            status_text = "\n\n".join(all_messages)
-            # Use markdown for better formatting
-            status_display.markdown(f"**Status History:**\n\n{status_text}")
-        else:
-            # If completed quickly (before first 10s callback), show completion message
-            if upload_elapsed < 10:
-                status_display.success(f"✅ Completed quickly in {upload_elapsed:.1f}s")
+    # Filter out files that already exist
+    files_to_upload = []
+    if skip_duplicates:
+        for uploaded_file in files:
+            if uploaded_file.name in st.session_state.get("existing_doc_names", set()):
+                st.sidebar.warning(
+                    f"⏭️ **{uploaded_file.name}** - Already exists (skipped)."
+                )
+                skipped += 1
             else:
-                status_display.info(f"⏳ Processing completed in {upload_elapsed:.1f}s")
+                files_to_upload.append(uploaded_file)
+    else:
+        files_to_upload = files
 
-        # Show final result (this appears as a separate message)
-        if result.success:
-            successes += 1
-            file_container.success(
-                f"✅ **{uploaded_file.name}** - uploaded and indexed successfully"
-            )
-        else:
-            failures += 1
-            file_container.error(
-                f"❌ **{uploaded_file.name}** - {result.error_message}"
-            )
+    if not files_to_upload:
+        st.sidebar.info("No new files to upload.")
+        return
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        future_to_file = {
+            executor.submit(
+                upload_single_file, client, store_name, uploaded_file
+            ): uploaded_file
+            for uploaded_file in files_to_upload
+        }
+
+        for future in concurrent.futures.as_completed(future_to_file):
+            uploaded_file = future_to_file[future]
+            try:
+                result: UploadResult = future.result()
+                if result.success:
+                    st.sidebar.success(
+                        f"✅ **{uploaded_file.name}** - Uploaded successfully."
+                    )
+                    successes += 1
+                else:
+                    st.sidebar.error(
+                        f"❌ **{uploaded_file.name}** - {result.error_message}"
+                    )
+                    failures += 1
+            except Exception as exc:
+                st.sidebar.error(
+                    f"❌ **{uploaded_file.name}** - Generated an exception: {exc}"
+                )
+                failures += 1
 
     # Show summary
     if successes > 0:
@@ -189,13 +155,12 @@ def upload_files(files, skip_duplicates: bool = True):
         if failures > 0:
             summary_parts.append(f"❌ {failures} failed")
         if skipped > 0:
-            summary_parts.append(f"⏭️ {skipped} skipped (duplicates)")
+            summary_parts.append(f"⏭️ {skipped} skipped")
         st.sidebar.info(f"Upload complete: {', '.join(summary_parts)}")
         # Refresh to show updated document list in sidebar
         st.rerun()
     else:
         if skipped > 0 and failures == 0:
-            # All files were skipped (duplicates)
             st.sidebar.warning(
                 f"All {skipped} file(s) were skipped (already exist in store)."
             )
@@ -211,35 +176,24 @@ if st.sidebar.button("Upload & index") and uploaded_files:
 if st.sidebar.button("Clear store"):
     result: ClearStoreResult = clear_store(client, store_name)
 
-    if result.removed > 0:
-        st.sidebar.success(f"Store cleared: {result.removed} document(s) removed")
+    if result.deleted:
+        st.sidebar.success("Store cleared successfully.")
+        # Remove the store name from the session state to create a new one on next run
+        if "store_name" in st.session_state:
+            del st.session_state.store_name
     elif result.errors:
         st.sidebar.error(f"Errors: {', '.join(result.errors)}")
     else:
-        st.sidebar.info("Store is already empty")
+        st.sidebar.info("Store is already empty or could not be deleted.")
 
-    # Refresh the page to update the document list (files_ready will be set to False automatically)
+    # Refresh the page to update the document list
     st.rerun()
 
-# Chat interface
-st.markdown("Upload documents in the sidebar, then ask questions below.")
 
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
-
-for message in st.session_state.chat_history:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-prompt = st.chat_input(
-    "Ask a question about the uploaded documents…",
-    disabled=not st.session_state.get("files_ready", False),
-)
-
-if not st.session_state.get("files_ready", False):
-    st.info("Upload and index documents (PDF or TXT) to enable questions.")
-
-if prompt:
+def handle_chat_prompt(
+    prompt: str, client: genai.Client, model_name: str, store_name: str
+):
+    """Handles the user's chat prompt, generates a response, and updates the chat history."""
     st.session_state.chat_history.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
@@ -355,3 +309,25 @@ if prompt:
 
     if answer:
         st.session_state.chat_history.append({"role": "assistant", "content": answer})
+
+
+# Chat interface
+st.markdown("Upload documents in the sidebar, then ask questions below.")
+
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+for message in st.session_state.chat_history:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
+
+prompt = st.chat_input(
+    "Ask a question about the uploaded documents…",
+    disabled=not st.session_state.get("files_ready", False),
+)
+
+if not st.session_state.get("files_ready", False):
+    st.info("Upload and index documents (PDF or TXT) to enable questions.")
+
+if prompt:
+    handle_chat_prompt(prompt, client, model_name, store_name)

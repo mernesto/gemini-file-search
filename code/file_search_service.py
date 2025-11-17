@@ -26,12 +26,8 @@ class UploadResult:
 class ClearStoreResult:
     """Result of clearing a store."""
 
-    removed: int = 0
+    deleted: bool = False
     errors: list[str] = None
-
-    def __post_init__(self):
-        if self.errors is None:
-            self.errors = []
 
 
 def get_or_create_store(client: genai.Client, display_name: str) -> str:
@@ -126,7 +122,7 @@ def _detect_mime_type(file_name: str, provided_type: Optional[str] = None) -> st
     mime_types = {
         ".pdf": "application/pdf",
         ".txt": "text/plain",
-        ".text": "text/plain"
+        ".text": "text/plain",
     }
 
     return mime_types.get(file_ext, "application/octet-stream")
@@ -195,7 +191,7 @@ def upload_single_file(
                 file_name=staged_file_name,
             )
 
-        # Poll until operation completes
+        # Poll until operation completes with exponential backoff.
         op_name = getattr(operation, "name", None)
         if not op_name:
             return UploadResult(
@@ -209,6 +205,8 @@ def upload_single_file(
         start_time = time.time()
         last_status_update = 0.0
         status_interval = 10.0  # Update every 10 seconds
+        wait_time = 2  # Initial wait time in seconds
+        max_wait_time = 32  # Maximum wait time in seconds
 
         while not getattr(current, "done", False):
             elapsed = time.time() - start_time
@@ -226,7 +224,13 @@ def upload_single_file(
                 status_callback(elapsed)
                 last_status_update = elapsed
 
-            time.sleep(2)
+            # Wait before polling again
+            time.sleep(wait_time)
+
+            # Exponentially increase wait time for the next poll, up to a maximum.
+            # This avoids spamming the API with requests during long-running operations.
+            wait_time = min(wait_time * 2, max_wait_time)
+
             current = client.operations.get(current)
 
         # Check if operation succeeded
@@ -311,35 +315,17 @@ def delete_document(client: genai.Client, store_name: str, display_name: str) ->
 
 
 def clear_store(client: genai.Client, store_name: str) -> ClearStoreResult:
-    """Delete all documents from the specified file search store.
+    """Delete the entire file search store.
 
     Args:
         client: google-genai client instance.
         store_name: Fully qualified File Search store name.
 
     Returns:
-        ClearStoreResult with counts of removed documents and errors.
+        ClearStoreResult indicating if the store was deleted.
     """
-    result = ClearStoreResult()
-
     try:
-        for doc in client.file_search_stores.documents.list(parent=store_name):
-            try:
-                client.file_search_stores.documents.delete(
-                    name=doc.name, config={"force": True}
-                )
-                result.removed += 1
-            except genai_errors.APIError as api_exc:
-                # Ignore NOT_FOUND errors (document already deleted)
-                if api_exc.status and "NOT_FOUND" not in str(api_exc.status).upper():
-                    result.errors.append(
-                        f"{getattr(doc, 'display_name', 'Unknown')}: {str(api_exc)}"
-                    )
-            except Exception as exc:
-                result.errors.append(
-                    f"{getattr(doc, 'display_name', 'Unknown')}: {str(exc)}"
-                )
+        client.file_search_stores.delete(name=store_name)
+        return ClearStoreResult(deleted=True)
     except Exception as exc:
-        result.errors.append(str(exc))
-
-    return result
+        return ClearStoreResult(deleted=False, errors=[str(exc)])
